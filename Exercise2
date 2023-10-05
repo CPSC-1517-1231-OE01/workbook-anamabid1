@@ -1,0 +1,109 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace TrainSystem
+{
+    public class RailCar
+    {
+        public string SerialNumber { get; }
+        public int LightWeight { get; }
+        public int Capacity { get; }
+        public int LoadLimit { get; }
+        public RailCarType Type { get; }
+        public bool InService { get; private set; }
+        public int GrossWeight { get; private set; }
+
+        public RailCar(string serialNumber, int lightWeight, int capacity, int loadLimit, RailCarType type)
+        {
+            SerialNumber = serialNumber ?? throw new ArgumentNullException(nameof(serialNumber), "SerialNumber required");
+            LightWeight = lightWeight;
+            Capacity = capacity;
+            LoadLimit = loadLimit;
+            Type = type;
+            InService = true;
+            GrossWeight = lightWeight;
+        }
+
+        public void Load(int grossWeight)
+        {
+            if (grossWeight < LightWeight)
+            {
+                throw new ArgumentException($"Scale Error - Gross weight {grossWeight} is less than Light Weight {LightWeight}");
+            }
+
+            if (grossWeight > LoadLimit + LightWeight)
+            {
+                throw new ArgumentException($"Unsafe Load - Gross weight {grossWeight} exceeds Load Limit {LoadLimit + LightWeight}");
+            }
+
+            GrossWeight = grossWeight;
+        }
+
+        public override string ToString()
+        {
+            return $"{SerialNumber},{LightWeight},{Capacity},{LoadLimit},{Type},{InService}";
+        }
+    }
+
+    public enum RailCarType
+    {
+        BoxCar,
+        CoalCar,
+        CoveredHopper
+    }
+
+    public class Train
+    {
+        private List<RailCar> railCars = new List<RailCar>();
+
+        public Engine Engine { get; }
+        public int MaximumGrossWeight => Engine.HorsePower * 2000;
+        public int GrossWeight => railCars.Sum(car => car.GrossWeight);
+        public IReadOnlyList<RailCar> RailCars => railCars;
+        public int TotalCars => railCars.Count;
+
+        public Train(Engine engine)
+        {
+            Engine = engine ?? throw new ArgumentNullException(nameof(engine), "An engine is required.");
+        }
+
+        public void AddCar(RailCar car)
+        {
+            if (car == null)
+            {
+                throw new ArgumentNullException(nameof(car), "RailCar required.");
+            }
+
+            if (railCars.Any(existingCar => existingCar.SerialNumber == car.SerialNumber))
+            {
+                throw new ArgumentException($"The railcar {car.SerialNumber} is already attached to the train.");
+            }
+
+            if (GrossWeight + car.GrossWeight > MaximumGrossWeight)
+            {
+                throw new ArgumentException($"Adding rail car {car.SerialNumber} exceeds the Maximum Gross Weight.");
+            }
+
+            railCars.Add(car);
+        }
+
+        public RailCar DetachCar(string serialNumber)
+        {
+            if (string.IsNullOrWhiteSpace(serialNumber))
+            {
+                throw new ArgumentNullException(nameof(serialNumber), "SerialNumber required.");
+            }
+
+            var carToRemove = railCars.FirstOrDefault(car => car.SerialNumber == serialNumber);
+
+            if (carToRemove == null)
+            {
+                throw new ArgumentException($"The railcar {serialNumber} is not attached to the train.");
+            }
+
+            railCars.Remove(carToRemove);
+            return carToRemove;
+        }
+    }
+}
