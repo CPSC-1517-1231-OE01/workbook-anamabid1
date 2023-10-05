@@ -1,0 +1,39 @@
+using FluentAssertions;
+using System;
+using Xunit;
+
+namespace UnitTestingEx2
+{
+    public class TrainTests
+    {
+        [Fact]
+        public void CreateTrain_WithEngine_ShouldSucceed()
+        {
+            // Arrange
+            var engine = new Engine("Test Engine", "12345", true, 4400);
+
+            // Act
+            var train = new TrainSystem.Train(engine);
+
+            // Assert
+            train.Should().NotBeNull();
+            train.Engine.Should().Be(engine);
+        }
+
+        [Fact]
+        public void CalculateMaxGrossWeight_ShouldReturnCorrectValue()
+        {
+            // Arrange
+            var engine = new Engine("Test Engine", "12345", true, 4400);
+            var train = new TrainSystem.Train(engine);
+
+            // Act
+            var maxGrossWeight = train.MaximumGrossWeight;
+
+            // Assert
+            maxGrossWeight.Should().Be(8800000); // 4400 HP * 2000 pounds
+        }
+
+        //
+    }
+}
